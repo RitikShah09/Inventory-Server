@@ -29,7 +29,6 @@ const importInvoiceSchema = new mongoose.Schema({
   },
   import_partner: {
     type: String,
-    default: "Unknown Partner",
   },
   import_invoice_date: {
     type: Date,
@@ -49,7 +48,6 @@ const importInvoiceSchema = new mongoose.Schema({
   },
   transport_mode: {
     type: String,
-    default: "Sea",
   },
   exchange_rate: {
     type: Number,
