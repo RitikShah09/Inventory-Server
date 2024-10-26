@@ -21,6 +21,7 @@ router.get("/", authMiddleware, async (req, res) => {
 
     const totalItems = await Inventory.countDocuments({
       userId: req.id,
+      isDeleted: { $ne: true },
     });
 
     const totalPages = Math.ceil(totalItems / limitNum);
