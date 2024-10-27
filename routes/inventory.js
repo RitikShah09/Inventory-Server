@@ -3,7 +3,6 @@ const Inventory = require("../models/Inventory");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
-// GET /?page=2&limit=5&sortBy=total_bill&order=desc
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const {
@@ -48,7 +47,6 @@ router.post("/", authMiddleware, async (req, res) => {
   try {
     const { import_invoice_number } = req.body;
 
-    // Use `findOne` and `await` to check if the invoice already exists.
     const existingInvoice = await Inventory.findOne({
       import_invoice_number: import_invoice_number,
     });
@@ -57,7 +55,6 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Invoice already exists" });
     }
 
-    // Create a new Inventory item if the invoice does not exist.
     const item = new Inventory({
       ...req.body,
       userId: req.id,
