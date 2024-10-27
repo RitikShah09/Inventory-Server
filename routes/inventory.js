@@ -3,7 +3,6 @@ const Inventory = require("../models/Inventory");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
-// GET /?page=2&limit=5&sortBy=total_bill&order=desc
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const {
@@ -47,8 +46,6 @@ router.get("/", authMiddleware, async (req, res) => {
 router.post("/", authMiddleware, async (req, res) => {
   try {
     const { import_invoice_number } = req.body;
-
-    // Use `findOne` and `await` to check if the invoice already exists.
     const existingInvoice = await Inventory.findOne({
       import_invoice_number: import_invoice_number,
     });
@@ -57,7 +54,6 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Invoice already exists" });
     }
 
-    // Create a new Inventory item if the invoice does not exist.
     const item = new Inventory({
       ...req.body,
       userId: req.id,
@@ -99,31 +95,28 @@ router.get("/:id", authMiddleware, async (req, res) => {
       ocean_charge: oceanCharge,
       cn_h_charge: cnhCharge,
       items,
+      total_bill,
     } = invoice;
 
     const formattedItems = items.map((item) => {
-      const rateAfterExchange = (item.rate * exchangeRate).toFixed(2);
-      const totalItemRate = (rateAfterExchange * item.quantity).toFixed(2);
-      const totalWithCharges = (
-        parseFloat(totalItemRate) +
-        customDuty +
-        oceanCharge +
-        cnhCharge
-      ).toFixed(2);
-      const ratePerQuantity = (totalWithCharges / item.quantity).toFixed(2);
+      const itemCharges = total_bill / items.length;
 
+      const rateAfterExchange = item.rate * exchangeRate + itemCharges;
+
+      const totalItemRate = (rateAfterExchange * item.quantity).toFixed(2);
+      const ratePerQuantity = (totalItemRate / item.quantity).toFixed(2);
       return {
         itemCode: item.product_code,
         rateInUSD: item.rate.toFixed(2),
         exchangeRate: exchangeRate.toFixed(2),
         quantity: item.quantity,
-        rateAfterExchange: parseFloat(rateAfterExchange),
-        totalItemRate: parseFloat(totalItemRate),
-        customDuty: customDuty.toFixed(2),
-        oceanCharge: oceanCharge.toFixed(2),
-        cnhCharge: cnhCharge.toFixed(2),
+        rateAfterExchange: parseFloat(item.rate * exchangeRate),
+        totalItemRate: parseFloat(item.rate * exchangeRate * item.quantity),
+        customDuty: customDuty,
+        oceanCharge: oceanCharge,
+        cnhCharge: cnhCharge,
         ratePerQuantity: parseFloat(ratePerQuantity),
-        total: parseFloat(totalWithCharges),
+        total: parseFloat(totalItemRate),
       };
     });
 
